@@ -100,10 +100,10 @@
         card.innerHTML = `
           <div class="title">${time ? (time + ' — ') : ''}${title || 'Без названия'}</div>
           <div class="meta">
-            ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Тег: ' + tag) : ''}
+            ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Кластер: ' + tag) : ''}
           </div>
           <div class="actions">
-            <a href="${link}" target="_blank" rel="noreferrer noopener">Открыть ссылку</a>
+            <a href="${link}" target="_blank" rel="noreferrer noopener">Записаться на практикум</a>
           </div>
         `;
         sec.appendChild(card);
