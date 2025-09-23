@@ -161,14 +161,22 @@
 
   load();
 })();
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('custom-link')) {
-    e.preventDefault();
-    const url = e.target.dataset.link;
-    const note = `⚠️ Сайт доступен только через Яндекс.Браузер или с сертификатом Минцифры.\n\nСсылка:\n${url}\n\nСкопировать ссылку в буфер обмена?`;
-    if (confirm(note)) {
-      navigator.clipboard.writeText(url);
-      alert('Ссылка скопирована, откройте её в Яндекс.Браузере.');
-    }
+document.addEventListener('click', (e) => {
+  const copyBtn = e.target.closest('.copy-link');
+  const openBtn = e.target.closest('.open-link');
+
+  if (copyBtn) {
+    const url = copyBtn.dataset.link;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Ссылка скопирована. Вставьте её в Яндекс.Браузер или браузер с сертификатом Минцифры.');
+    }).catch(() => {
+      alert('Не удалось скопировать. Попробуйте вручную.');
+    });
+  }
+
+  if (openBtn) {
+    const url = openBtn.dataset.link;
+    const note = '⚠️ Этот ресурс работает только в Яндекс.Браузере или с установленным сертификатом Минцифры. Открыть сейчас?';
+    if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
   }
 });
