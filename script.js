@@ -165,3 +165,14 @@
 
   load();
 })();
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('custom-link')) {
+    e.preventDefault();
+    const url = e.target.dataset.link;
+    const note = `⚠️ Сайт доступен только через Яндекс.Браузер или с сертификатом Минцифры.\n\nСсылка:\n${url}\n\nСкопировать ссылку в буфер обмена?`;
+    if (confirm(note)) {
+      navigator.clipboard.writeText(url);
+      alert('Ссылка скопирована, откройте её в Яндекс.Браузере.');
+    }
+  }
+});
