@@ -97,17 +97,16 @@
         const tag = it.tag || '';
         const link = it.link || '#';
 
-<div class="actions">
-  <button class="copy-link" data-link="${link}">Копировать ссылку</button>
-  <button class="open-link" data-link="${link}">Открыть в браузере</button>
-</div>
-
-    // Главная кнопка Telegram (внизу) — по желанию
-    if (window.Telegram?.WebApp?.MainButton) {
-      Telegram.WebApp.MainButton.setText('Обновить').show();
-      Telegram.WebApp.MainButton.onClick(() => location.reload());
-    }
-  }
+     card.innerHTML = `
+    <div class="title">${time ? (time + ' — ') : ''}${title || 'Без названия'}</div>
+    <div class="meta">
+    ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Кластер: ' + tag) : ''}
+    </div>
+    <div class="actions">
+    <button class="copy-link" data-link="${link}">Копировать ссылку</button>
+    <button class="open-link" data-link="${link}">Открыть в браузере</button>
+    </div>
+`;
 
   // ---- ЗАГРУЗКА ----
   let rawItems = [];
@@ -155,25 +154,6 @@
 
   load();
 })();
-document.addEventListener('click', (e) => {
-  const copyBtn = e.target.closest('.copy-link');
-  const openBtn = e.target.closest('.open-link');
-
-  if (copyBtn) {
-    const url = copyBtn.dataset.link;
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Ссылка скопирована. Вставьте её в Яндекс.Браузер или браузер с сертификатом Минцифры.');
-    }).catch(() => {
-      alert('Не удалось скопировать. Попробуйте вручную.');
-    });
-  }
-
-  if (openBtn) {
-    const url = openBtn.dataset.link;
-    const note = '⚠️ Этот ресурс работает только в Яндекс.Браузере или с установленным сертификатом Минцифры. Открыть сейчас?';
-    if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
-  }
-});
 // Делегирование кликов по кнопкам
 document.addEventListener('click', (e) => {
   const copyBtn = e.target.closest('.copy-link');
@@ -200,7 +180,7 @@ document.addEventListener('click', (e) => {
 
   if (openBtn) {
     const url = openBtn.dataset.link;
-    const note = '⚠️ corpuniver.rt.ru обычно открывается только в Яндекс.Браузере или при установленном сертификате Минцифры.\n\nОткрыть сейчас?';
+    const note = '⚠️ Сайт открывается только в Яндекс.Браузере или при установленном сертификате Минцифры.\n\nОткрыть сейчас?';
     if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
   }
 });
