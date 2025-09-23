@@ -5,17 +5,17 @@
   const resetBtn = document.getElementById('resetBtn');
   const refreshBtn = document.getElementById('refreshBtn');
 
-  // Инициализация Telegram WebApp (без этого кнопки и тема могут работать странно)
+  // Инициализация Telegram WebApp
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
-    Telegram.WebApp.expand(); // растянуть высоту
+    Telegram.WebApp.expand();
   }
 
-  // ---- УТИЛИТЫ ----
-  // Простейший парсер CSV с поддержкой кавычек (не идеален, но годится для наших колонок)
+  // ---------- УТИЛИТЫ ----------
+  // Простой парсер CSV с поддержкой кавычек
   function parseCSV(text) {
     const rows = [];
-    let cur = []; let field = ''; let inQuotes = false;
+    let cur = [], field = '', inQuotes = false;
     for (let i = 0; i < text.length; i++) {
       const c = text[i], n = text[i + 1];
       if (inQuotes) {
@@ -39,8 +39,26 @@
     for (let i = 1; i < rows.length; i++) {
       const o = {};
       for (let j = 0; j < header.length; j++) o[header[j]] = (rows[i][j] ?? '').trim();
-      // Нормализуем ключи под ожидаемые (date,time,title,trainer,tag,link)
       out.push(o);
+    }
+    return out;
+  }
+
+  // Нормализация заголовков (поддержка русских названий колонок)
+  function normalizeKeys(obj) {
+    const map = {
+      'дата': 'date', 'day': 'date',
+      'время': 'time',
+      'название': 'title', 'тема': 'title',
+      'тренер': 'trainer',
+      'кластер': 'tag', 'тег': 'tag',
+      'ссылка': 'link', 'link': 'link'
+    };
+    const out = {};
+    for (const [k, v] of Object.entries(obj)) {
+      const key = (k || '').trim().toLowerCase();
+      const val = (v || '').trim();
+      out[map[key] || key] = val;
     }
     return out;
   }
@@ -55,7 +73,7 @@
   }
 
   function unique(list) {
-    return [...new Set(list.filter(Boolean))].sort((a,b)=>a.localeCompare(b, 'ru'));
+    return [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
   }
 
   function applyFilters(items) {
@@ -68,6 +86,7 @@
     });
   }
 
+  // ---------- РЕНДЕР ----------
   function render(items) {
     const filtered = applyFilters(items);
     const grouped = groupByDate(filtered);
@@ -82,11 +101,12 @@
     dates.forEach(d => {
       const sec = document.createElement('section');
       sec.className = 'day';
+
       const h = document.createElement('h3');
       h.textContent = d;
       sec.appendChild(h);
 
-      const events = grouped[d].sort((a,b) => (a.time||'').localeCompare(b.time||''));
+      const events = grouped[d].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
       events.forEach(it => {
         const card = document.createElement('div');
         card.className = 'card';
@@ -97,24 +117,34 @@
         const tag = it.tag || '';
         const link = it.link || '#';
 
-     card.innerHTML = `
-    <div class="title">${time ? (time + ' — ') : ''}${title || 'Без названия'}</div>
-    <div class="meta">
-    ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Кластер: ' + tag) : ''}
-    </div>
-    <div class="actions">
-    <button class="copy-link" data-link="${link}">Копировать ссылку</button>
-    <button class="open-link" data-link="${link}">Открыть в браузере</button>
-    </div>
-`;
+        card.innerHTML = `
+          <div class="title">${time ? (time + ' — ') : ''}${title || 'Без названия'}</div>
+          <div class="meta">
+            ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Кластер: ' + tag) : ''}
+          </div>
+          <div class="actions">
+            <button class="copy-link" data-link="${link}">Копировать ссылку</button>
+            <button class="open-link" data-link="${link}">Открыть в браузере</button>
+          </div>
+        `;
 
-  // ---- ЗАГРУЗКА ----
+        sec.appendChild(card);
+      });
+
+      app.appendChild(sec);
+    });
+
+    if (window.Telegram?.WebApp?.MainButton) {
+      Telegram.WebApp.MainButton.setText('Обновить').show().onClick(() => location.reload());
+    }
+  }
+
+  // ---------- ЗАГРУЗКА ----------
   let rawItems = [];
 
   function populateFilters(items) {
     const trainers = unique(items.map(i => i.trainer));
     const tags = unique(items.map(i => i.tag));
-
     trainerFilter.innerHTML = '<option value="">Все тренеры</option>' + trainers.map(v => `<option>${v}</option>`).join('');
     tagFilter.innerHTML = '<option value="">Все кластеры</option>' + tags.map(v => `<option>${v}</option>`).join('');
   }
@@ -125,13 +155,14 @@
       .then(r => r.text())
       .then(text => {
         const rows = parseCSV(text);
-        const items = toObjects(rows).map(o => ({
-          date: o.date || o.DATE || '',
-          time: o.time || o.TIME || '',
-          title: o.title || o.TITLE || '',
-          trainer: o.trainer || o.TRAINER || '',
-          tag: o.tag || o.TAG || '',
-          link: o.link || o.LINK || ''
+        const raw = toObjects(rows).map(normalizeKeys);
+        const items = raw.map(o => ({
+          date: o.date || '',
+          time: o.time || '',
+          title: o.title || '',
+          trainer: o.trainer || '',
+          tag: o.tag || '',
+          link: o.link || ''
         }));
         rawItems = items;
         populateFilters(items);
@@ -153,39 +184,39 @@
   refreshBtn.addEventListener('click', () => location.reload());
 
   load();
-})();
-// Делегирование кликов по кнопкам
+})(); // ← закрыли IIFE
+
+// ---------- ОБРАБОТЧИКИ КНОПОК ----------
 document.addEventListener('click', (e) => {
   const copyBtn = e.target.closest('.copy-link');
   const openBtn = e.target.closest('.open-link');
 
   if (copyBtn) {
     const url = copyBtn.dataset.link;
-    // Основной способ
-    navigator.clipboard?.writeText(url).then(() => {
-      alert('Ссылка скопирована. Откройте её в Яндекс.Браузере или с сертификатом Минцифры.');
-    }).catch(() => {
-      // Фолбэк для старых вебвью: временное поле + select + copy
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.focus(); ta.select();
-      try { document.execCommand('copy'); alert('Ссылка скопирована.'); }
-      catch { alert('Не удалось скопировать. Скопируйте вручную: ' + url); }
-      document.body.removeChild(ta);
-    });
+    (navigator.clipboard?.writeText(url) || Promise.reject())
+      .then(() => alert('Ссылка скопирована. Откройте её в Яндекс.Браузере или с сертификатом Минцифры.'))
+      .catch(() => {
+        // Фолбэк для старых веб-вью
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try { document.execCommand('copy'); alert('Ссылка скопирована.'); }
+        catch { alert('Не удалось скопировать. Скопируйте вручную: ' + url); }
+        document.body.removeChild(ta);
+      });
   }
 
   if (openBtn) {
     const url = openBtn.dataset.link;
-    const note = '⚠️ Сайт открывается только в Яндекс.Браузере или при установленном сертификате Минцифры.\n\nОткрыть сейчас?';
+    const note = '⚠️ Сайт corpuniver.rt.ru чаще всего открывается только в Яндекс.Браузере или при установленном сертификате Минцифры.\n\nОткрыть сейчас?';
     if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
   }
 });
 
-// (Опционально) копирование по долгому тапу на "Открыть в браузере"
+// (Опционально) копирование по долгому тапу на «Открыть в браузере»
 let pressTimer;
 document.addEventListener('touchstart', (e) => {
   const target = e.target.closest('.open-link');
@@ -194,8 +225,8 @@ document.addEventListener('touchstart', (e) => {
   pressTimer = setTimeout(() => {
     navigator.clipboard?.writeText(url);
     alert('Ссылка скопирована. Откройте её в Яндекс.Браузере.');
-  }, 550); // 0.55s = long-press
-}, {passive: true});
+  }, 550);
+}, { passive: true });
 
-document.addEventListener('touchend', () => clearTimeout(pressTimer), {passive: true});
-document.addEventListener('touchmove', () => clearTimeout(pressTimer), {passive: true});
+document.addEventListener('touchend', () => clearTimeout(pressTimer), { passive: true });
+document.addEventListener('touchmove', () => clearTimeout(pressTimer), { passive: true });
