@@ -1,5 +1,5 @@
 :root {
-  --bg: #65OOD9;
+  --bg: #6500d9;
   --card: #E8E8EE;
   --text: #1D2533;
   --muted: #b6bcc8;
@@ -41,6 +41,7 @@ section.day { margin-bottom: 20px; }
 .card a:hover { border-color: var(--accent); }
 
 footer { padding: 12px 16px 24px; border-top: 1px solid var(--line); }
+
 
 
 
