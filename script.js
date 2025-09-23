@@ -5,14 +5,12 @@
   const resetBtn = document.getElementById('resetBtn');
   const refreshBtn = document.getElementById('refreshBtn');
 
-  // Инициализация Telegram WebApp
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
   }
 
   // ---------- УТИЛИТЫ ----------
-  // Простой парсер CSV с поддержкой кавычек
   function parseCSV(text) {
     const rows = [];
     let cur = [], field = '', inQuotes = false;
@@ -44,7 +42,6 @@
     return out;
   }
 
-  // Нормализация заголовков (поддержка русских названий колонок)
   function normalizeKeys(obj) {
     const map = {
       'дата': 'date', 'day': 'date',
@@ -184,7 +181,7 @@
   refreshBtn.addEventListener('click', () => location.reload());
 
   load();
-})(); // ← закрыли IIFE
+})(); // ← IIFE закрыта
 
 // ---------- ОБРАБОТЧИКИ КНОПОК ----------
 document.addEventListener('click', (e) => {
@@ -196,7 +193,6 @@ document.addEventListener('click', (e) => {
     (navigator.clipboard?.writeText(url) || Promise.reject())
       .then(() => alert('Ссылка скопирована. Откройте её в Яндекс.Браузере или с сертификатом Минцифры.'))
       .catch(() => {
-        // Фолбэк для старых веб-вью
         const ta = document.createElement('textarea');
         ta.value = url;
         ta.style.position = 'fixed';
@@ -211,12 +207,12 @@ document.addEventListener('click', (e) => {
 
   if (openBtn) {
     const url = openBtn.dataset.link;
-    const note = '⚠️ Сайт corpuniver.rt.ru чаще всего открывается только в Яндекс.Браузере или при установленном сертификате Минцифры.\n\nОткрыть сейчас?';
+    const note = '⚠️ corpuniver.rt.ru обычно открывается только в Яндекс.Браузере или при установленном сертификате Минцифры.\n\nОткрыть сейчас?';
     if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
   }
 });
 
-// (Опционально) копирование по долгому тапу на «Открыть в браузере»
+// Опционально: долгий тап по «Открыть в браузере» тоже копирует
 let pressTimer;
 document.addEventListener('touchstart', (e) => {
   const target = e.target.closest('.open-link');
