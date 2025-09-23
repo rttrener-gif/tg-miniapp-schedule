@@ -1,7 +1,7 @@
 :root {
   --bg: #65OOD9;
   --card: #E8E8EE;
-  --text: #ffffff;
+  --text: #1D2533;
   --muted: #b6bcc8;
   --line: #2a2c31;
   --accent: #7aa2ff;
@@ -41,6 +41,7 @@ section.day { margin-bottom: 20px; }
 .card a:hover { border-color: var(--accent); }
 
 footer { padding: 12px 16px 24px; border-top: 1px solid var(--line); }
+
 
 
 
