@@ -127,7 +127,7 @@
     const tags = unique(items.map(i => i.tag));
 
     trainerFilter.innerHTML = '<option value="">Все тренеры</option>' + trainers.map(v => `<option>${v}</option>`).join('');
-    tagFilter.innerHTML = '<option value="">Все теги</option>' + tags.map(v => `<option>${v}</option>`).join('');
+    tagFilter.innerHTML = '<option value="">Все кластеры</option>' + tags.map(v => `<option>${v}</option>`).join('');
   }
 
   function load() {
