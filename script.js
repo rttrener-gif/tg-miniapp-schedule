@@ -98,19 +98,15 @@
         const link = it.link || '#';
 
         card.innerHTML = `
-          <div class="title">${time ? (time + ' — ') : ''}${title || 'Без названия'}</div>
-          <div class="meta">
-            ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Кластер: ' + tag) : ''}
-          </div>
-          <div class="actions">
-            <a href="${link}" target="_blank" rel="noreferrer noopener">Записаться на практикум</a>
-          </div>
-        `;
-        sec.appendChild(card);
-      });
-
-      app.appendChild(sec);
-    });
+  <div class="title">${time ? (time + ' — ') : ''}${title || 'Без названия'}</div>
+  <div class="meta">
+    ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Кластер: ' + tag) : ''}
+  </div>
+  <div class="actions">
+    <button class="copy-link" data-link="${link}">Копировать ссылку</button>
+    <button class="open-link" data-link="${link}">Открыть в браузере</button>
+  </div>
+`;
 
     // Главная кнопка Telegram (внизу) — по желанию
     if (window.Telegram?.WebApp?.MainButton) {
