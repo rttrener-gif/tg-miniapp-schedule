@@ -97,16 +97,10 @@
         const tag = it.tag || '';
         const link = it.link || '#';
 
-        card.innerHTML = `
-  <div class="title">${time ? (time + ' — ') : ''}${title || 'Без названия'}</div>
-  <div class="meta">
-    ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Кластер: ' + tag) : ''}
-  </div>
-  <div class="actions">
-    <button class="copy-link" data-link="${link}">Копировать ссылку</button>
-    <button class="open-link" data-link="${link}">Открыть в браузере</button>
-  </div>
-`;
+<div class="actions">
+  <button class="copy-link" data-link="${link}">Копировать ссылку</button>
+  <button class="open-link" data-link="${link}">Открыть в браузере</button>
+</div>
 
     // Главная кнопка Telegram (внизу) — по желанию
     if (window.Telegram?.WebApp?.MainButton) {
@@ -180,3 +174,48 @@ document.addEventListener('click', (e) => {
     if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
   }
 });
+// Делегирование кликов по кнопкам
+document.addEventListener('click', (e) => {
+  const copyBtn = e.target.closest('.copy-link');
+  const openBtn = e.target.closest('.open-link');
+
+  if (copyBtn) {
+    const url = copyBtn.dataset.link;
+    // Основной способ
+    navigator.clipboard?.writeText(url).then(() => {
+      alert('Ссылка скопирована. Откройте её в Яндекс.Браузере или с сертификатом Минцифры.');
+    }).catch(() => {
+      // Фолбэк для старых вебвью: временное поле + select + copy
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      try { document.execCommand('copy'); alert('Ссылка скопирована.'); }
+      catch { alert('Не удалось скопировать. Скопируйте вручную: ' + url); }
+      document.body.removeChild(ta);
+    });
+  }
+
+  if (openBtn) {
+    const url = openBtn.dataset.link;
+    const note = '⚠️ corpuniver.rt.ru обычно открывается только в Яндекс.Браузере или при установленном сертификате Минцифры.\n\nОткрыть сейчас?';
+    if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
+  }
+});
+
+// (Опционально) копирование по долгому тапу на "Открыть в браузере"
+let pressTimer;
+document.addEventListener('touchstart', (e) => {
+  const target = e.target.closest('.open-link');
+  if (!target) return;
+  const url = target.dataset.link;
+  pressTimer = setTimeout(() => {
+    navigator.clipboard?.writeText(url);
+    alert('Ссылка скопирована. Откройте её в Яндекс.Браузере.');
+  }, 550); // 0.55s = long-press
+}, {passive: true});
+
+document.addEventListener('touchend', () => clearTimeout(pressTimer), {passive: true});
+document.addEventListener('touchmove', () => clearTimeout(pressTimer), {passive: true});
