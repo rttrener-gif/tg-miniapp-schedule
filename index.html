@@ -10,7 +10,11 @@
 </head>
 <body>
   <header>
-    <h1 class="page-title">Расписание</h1>
+    <div class="logo-wrap">
+      <img src="./logo.png" alt="Логотип компании" class="logo" />
+      <h1 class="page-title">Расписание</h1>
+    </div>
+
     <div class="filters">
       <select id="trainerFilter">
         <option value="">Все тренеры</option>
@@ -29,7 +33,6 @@
   </footer>
 
   <script>
-    // 1) ВСТАВЬ сюда СВОЮ ссылку на опубликованный CSV из Google Sheets:
     window.CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQ5g21ZeieGsTGXAiK3ibru5JGflTsKnpE7ucRKoYskKZYfXqGJt68vOj4kte-TIcLLGDdx5SbcL2a/pub?gid=0&single=true&output=csv";
   </script>
   <script src="./script.js"></script>
