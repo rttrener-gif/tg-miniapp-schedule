@@ -9,20 +9,22 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-<header>
-  <img src="./logo.png" alt="Логотип компании" class="logo absolute-left" />
-  <h1 class="page-title">Расписание</h1>
+  <header>
+    <div class="logo-wrap column">
+      <img src="./logo.png" alt="Логотип компании" class="logo" />
+      <h1 class="page-title">Расписание</h1>
+    </div>
 
-  <div class="filters">
-    <select id="trainerFilter">
-      <option value="">Все тренеры</option>
-    </select>
-    <select id="tagFilter">
-      <option value="">Все территории</option>
-    </select>
-    <button id="resetBtn" type="button">Сбросить</button>
-  </div>
-</header>
+    <div class="filters">
+      <select id="trainerFilter">
+        <option value="">Все тренеры</option>
+      </select>
+      <select id="tagFilter">
+        <option value="">Все теги</option>
+      </select>
+      <button id="resetBtn" type="button">Сбросить</button>
+    </div>
+  </header>
 
   <main id="app">Загрузка…</main>
 
@@ -30,9 +32,25 @@
     <button id="refreshBtn" type="button">Обновить</button>
   </footer>
 
+  <!-- Модалка (детали карточки) -->
+  <div id="modal" class="modal hidden" aria-hidden="true">
+    <div class="overlay"></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="close" aria-label="Закрыть">×</button>
+      <h2 id="modalTitle"></h2>
+      <p class="modal-meta"></p>
+      <div class="modal-actions">
+        <button class="open-link">Открыть ссылку</button>
+        <button class="copy-link">Копировать ссылку</button>
+        <button class="enroll">+ В мой календарь</button>
+        <button class="unenroll">— Убрать из календаря</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     window.CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQ5g21ZeieGsTGXAiK3ibru5JGflTsKnpE7ucRKoYskKZYfXqGJt68vOj4kte-TIcLLGDdx5SbcL2a/pub?gid=0&single=true&output=csv";
   </script>
-  <script src="./script.js?v=9"></script>
+  <script src="./script.js?v=10"></script>
 </body>
 </html>
