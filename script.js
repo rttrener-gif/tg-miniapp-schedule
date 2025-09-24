@@ -5,6 +5,16 @@
   const resetBtn = document.getElementById('resetBtn');
   const refreshBtn = document.getElementById('refreshBtn');
 
+  // Модалка
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalMeta = modal.querySelector('.modal-meta');
+  const modalBtnOpen = modal.querySelector('.open-link');
+  const modalBtnCopy = modal.querySelector('.copy-link');
+  const modalBtnEnroll = modal.querySelector('.enroll');
+  const modalBtnUnenroll = modal.querySelector('.unenroll');
+  const modalClose = modal.querySelector('.close');
+
   if (window.Telegram?.WebApp) {
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
@@ -73,17 +83,46 @@
     return [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
   }
 
+  // Дет-ид события (стабильный)
+  function makeId(it) {
+    return `${(it.date||'').trim()}_${(it.time||'').trim()}_${(it.title||'').trim()}`.toLowerCase();
+  }
+
+  // ---------- "МОЙ КАЛЕНДАРЬ" (пока локально, без бэка) ----------
+  const LS_KEY = 'myCalendarIds';
+  const MY = new Set(JSON.parse(localStorage.getItem(LS_KEY) || '[]'));
+
+  function saveMy() {
+    localStorage.setItem(LS_KEY, JSON.stringify([...MY]));
+  }
+  function ensureEnrolled(id) {
+    MY.add(id); saveMy();
+  }
+  function removeEnrolled(id) {
+    MY.delete(id); saveMy();
+  }
+
+  // ---------- ФИЛЬТРЫ ----------
   function applyFilters(items) {
-    const t = trainerFilter.value;
-    const g = tagFilter.value;
+    const t = (trainerFilter.value || '').toLowerCase();
+    const g = (tagFilter.value || '').toLowerCase();
     return items.filter(it => {
-      const okTrainer = !t || (it.trainer || '').toLowerCase() === t.toLowerCase();
-      const okTag = !g || (it.tag || '').toLowerCase() === g.toLowerCase();
+      const okTrainer = !t || (it.trainer || '').toLowerCase() === t;
+      const okTag     = !g || (it.tag || '').toLowerCase() === g;
       return okTrainer && okTag;
     });
   }
- 
-  // ---------- РЕНДЕР ----------
+
+  function populateFilters(items) {
+    const trainers = unique(items.map(i => i.trainer));
+    const tags = unique(items.map(i => i.tag));
+    trainerFilter.innerHTML = '<option value="">Все тренеры</option>' + trainers.map(v => `<option>${v}</option>`).join('');
+    tagFilter.innerHTML = '<option value="">Все теги</option>' + tags.map(v => `<option>${v}</option>`).join('');
+  }
+
+  // ---------- РЕНДЕР СПИСКА ----------
+  let rawItems = [];
+
   function render(items) {
     const filtered = applyFilters(items);
     const grouped = groupByDate(filtered);
@@ -107,21 +146,20 @@
       events.forEach(it => {
         const card = document.createElement('div');
         card.className = 'card';
+        card.dataset.id = makeId(it); // пригодится в модалке
+        card.dataset.link = it.link || '#';
+        card.dataset.title = it.title || '';
+        card.dataset.time = it.time || '';
+        card.dataset.trainer = it.trainer || '';
+        card.dataset.tag = it.tag || '';
 
-        const time = it.time || '';
-        const title = it.title || '';
-        const trainer = it.trainer || '';
-        const tag = it.tag || '';
-        const link = it.link || '#';
+        const isMine = MY.has(card.dataset.id);
 
         card.innerHTML = `
-          <div class="title">${time ? (time + ' — ') : ''}${title || 'Без названия'}</div>
+          <div class="title">${it.time ? (it.time + ' — ') : ''}${it.title || 'Без названия'}</div>
           <div class="meta">
-            ${trainer ? ('Тренер: ' + trainer) : ''}${trainer && tag ? ' · ' : ''}${tag ? ('Кластер: ' + tag) : ''}
-          </div>
-          <div class="actions">
-            <button class="copy-link" data-link="${link}">Копировать ссылку</button>
-            <button class="open-link" data-link="${link}">Открыть в браузере</button>
+            ${it.trainer ? ('Тренер: ' + it.trainer) : ''}${it.trainer && it.tag ? ' · ' : ''}${it.tag ? ('Тег: ' + it.tag) : ''}
+            ${isMine ? ' · ✅ в моём календаре' : ''}
           </div>
         `;
 
@@ -136,16 +174,40 @@
     }
   }
 
-  // ---------- ЗАГРУЗКА ----------
-  let rawItems = [];
+  // ---------- МОДАЛКА ----------
+  let currentCard = null;
 
-  function populateFilters(items) {
-    const trainers = unique(items.map(i => i.trainer));
-    const tags = unique(items.map(i => i.tag));
-    trainerFilter.innerHTML = '<option value="">Все тренеры</option>' + trainers.map(v => `<option>${v}</option>`).join('');
-    tagFilter.innerHTML = '<option value="">Все кластеры</option>' + tags.map(v => `<option>${v}</option>`).join('');
+  function openModal(cardEl) {
+    currentCard = cardEl;
+
+    const t = cardEl.dataset.title;
+    const time = cardEl.dataset.time;
+    const trainer = cardEl.dataset.trainer;
+    const tag = cardEl.dataset.tag;
+    const id = cardEl.dataset.id;
+
+    modalTitle.textContent = `${time ? (time + ' — ') : ''}${t || 'Без названия'}`;
+    modalMeta.textContent = [
+      trainer ? `Тренер: ${trainer}` : '',
+      tag ? `Тег: ${tag}` : '',
+      MY.has(id) ? 'В моём календаре' : ''
+    ].filter(Boolean).join(' · ');
+
+    // показываем/прячем кнопки по состоянию
+    modalBtnEnroll.style.display = MY.has(id) ? 'none' : '';
+    modalBtnUnenroll.style.display = MY.has(id) ? '' : 'none';
+
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
   }
 
+  function closeModal() {
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    currentCard = null;
+  }
+
+  // ---------- ЗАГРУЗКА ----------
   function load() {
     app.textContent = 'Загрузка…';
     fetch(window.CSV_URL, { cache: 'no-store' })
@@ -171,6 +233,7 @@
       });
   }
 
+  // ---------- СЛУШАТЕЛИ ----------
   trainerFilter.addEventListener('change', () => render(rawItems));
   tagFilter.addEventListener('change', () => render(rawItems));
   resetBtn.addEventListener('click', () => {
@@ -180,49 +243,63 @@
   });
   refreshBtn.addEventListener('click', () => location.reload());
 
-  load();
-})(); // ← IIFE закрыта
+  // Клик по карточке — открыть модалку
+  app.addEventListener('click', (e) => {
+    const card = e.target.closest('.card');
+    if (!card) return;
+    openModal(card);
+  });
 
-// ---------- ОБРАБОТЧИКИ КНОПОК ----------
-document.addEventListener('click', (e) => {
-  const copyBtn = e.target.closest('.copy-link');
-  const openBtn = e.target.closest('.open-link');
+  // Кнопки модалки
+  modalClose.addEventListener('click', closeModal);
+  modal.querySelector('.overlay').addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
 
-  if (copyBtn) {
-    const url = copyBtn.dataset.link;
-    (navigator.clipboard?.writeText(url) || Promise.reject())
-      .then(() => alert('Ссылка скопирована. Откройте её в Яндекс.Браузере или с сертификатом Минцифры.'))
-      .catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = url;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        try { document.execCommand('copy'); alert('Ссылка скопирована.'); }
-        catch { alert('Не удалось скопировать. Скопируйте вручную: ' + url); }
-        document.body.removeChild(ta);
-      });
-  }
-
-  if (openBtn) {
-    const url = openBtn.dataset.link;
-    const note = '⚠️ corpuniver.rt.ru обычно открывается только в Яндекс.Браузере или при установленном сертификате Минцифры.\n\nОткрыть сейчас?';
+  modalBtnOpen.addEventListener('click', () => {
+    if (!currentCard) return;
+    const url = currentCard.dataset.link;
+    const id = currentCard.dataset.id;
+    // авто-зачёт в "мой календарь"
+    ensureEnrolled(id);
+    render(rawItems);
+    // предупреждение про браузер
+    const note = '⚠️ Сайт может открываться только в Яндекс.Браузере или при установленном сертификате Минцифры. Открыть сейчас?';
     if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
-  }
-});
+  });
 
-// Опционально: долгий тап по «Открыть в браузере» тоже копирует
-let pressTimer;
-document.addEventListener('touchstart', (e) => {
-  const target = e.target.closest('.open-link');
-  if (!target) return;
-  const url = target.dataset.link;
-  pressTimer = setTimeout(() => {
-    navigator.clipboard?.writeText(url);
-    alert('Ссылка скопирована. Откройте её в Яндекс.Браузере.');
-  }, 550);
-}, { passive: true });
+  modalBtnCopy.addEventListener('click', async () => {
+    if (!currentCard) return;
+    const url = currentCard.dataset.link;
+    const id = currentCard.dataset.id;
+    // авто-зачёт в "мой календарь"
+    ensureEnrolled(id);
+    render(rawItems);
+    try {
+      await (navigator.clipboard?.writeText(url) || Promise.reject());
+      alert('Ссылка скопирована.');
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); alert('Ссылка скопирована.'); }
+      catch { alert('Не удалось скопировать. Скопируйте вручную: ' + url); }
+      document.body.removeChild(ta);
+    }
+  });
 
-document.addEventListener('touchend', () => clearTimeout(pressTimer), { passive: true });
-document.addEventListener('touchmove', () => clearTimeout(pressTimer), { passive: true });
+  modalBtnEnroll.addEventListener('click', () => {
+    if (!currentCard) return;
+    ensureEnrolled(currentCard.dataset.id);
+    render(rawItems);
+    openModal(currentCard); // обновить состояние кнопок
+  });
+
+  modalBtnUnenroll.addEventListener('click', () => {
+    if (!currentCard) return;
+    removeEnrolled(currentCard.dataset.id);
+    render(rawItems);
+    openModal(currentCard); // обновить состояние кнопок
+  });
+
+  load();
+})();
