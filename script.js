@@ -117,7 +117,7 @@
     const trainers = unique(items.map(i => i.trainer));
     const tags = unique(items.map(i => i.tag));
     trainerFilter.innerHTML = '<option value="">Все тренеры</option>' + trainers.map(v => `<option>${v}</option>`).join('');
-    tagFilter.innerHTML = '<option value="">Все теги</option>' + tags.map(v => `<option>${v}</option>`).join('');
+    tagFilter.innerHTML = '<option value="">Все территории</option>' + tags.map(v => `<option>${v}</option>`).join('');
   }
 
   // ---------- РЕНДЕР СПИСКА ----------
