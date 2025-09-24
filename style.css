@@ -1,30 +1,45 @@
-:root {
-  --bg: #6500d9;
-  --card: #E8E8EE;
-  --text: #1D2533;
-  --muted: #b6bcc8;
-  --line: #2a2c31;
-  --accent: #7aa2ff;
-  --title-color: #b6bcc8; /* цвет заголовка */
+:root{
+  --bg:#6500d9; 
+  --card:#E8E8EE; 
+  --text:#1D2533; 
+  --muted:#b6bcc8;
+  --line:#2a2c31; 
+  --accent:#7aa2ff; 
+  --title-color:#ffffff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{
+  position:relative;
+  text-align:center;           /* центрируем заголовок */
+  padding:16px;
+  border-bottom:1px solid var(--line);
 }
 
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-
-header { padding: 16px; border-bottom: 1px solid var(--line); }
-h1 { margin: 0 0 12px 0; font-size: 20px; }
-
-.page-title {
-  color: var(--title-color);
-  font-weight: 700;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+/* Логотип прибиваем к левому верхнему углу шапки */
+.logo.absolute-left{
+  position:absolute;
+  left:16px;
+  top:16px;                    /* если хочешь строго по вертикальному центру шапки — см. ниже */
+  height:60px;
+  width:auto;
 }
 
-.filters { display: flex; gap: 8px; }
-select, button {
-  background: var(--card); color: var(--text);
-  border: 1px solid var(--line); border-radius: 10px;
-  padding: 10px 12px; font-size: 14px;
+
+/* Заголовок по центру */
+.page-title{
+  margin:0;
+  font-size:20px;
+  font-weight:700;
+  color:var(--title-color);
+  text-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.filters { 
+  display: flex; 
+  gap: 8px; 
+  justify-content: center;   /* центрируем */
+  flex-wrap: wrap;           /* перенос на новую строку */
+  margin-top: 12px;          /* отступ от заголовка */
 }
 button { cursor: pointer; }
 button:hover { border-color: var(--accent); }
@@ -35,39 +50,20 @@ section.day { margin-bottom: 20px; }
 .day h3 { margin: 0 0 8px 0; font-size: 16px; color: var(--muted); font-weight: 500; }
 
 .card {
-  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-  padding: 12px; margin: 10px 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0;
+  cursor: pointer;                          /* курсор-указатель */
+  transition: transform .08s ease, border-color .15s; /* лёгкий «подскок» */
 }
-.card .title { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
-.card .meta { font-size: 13px; color: var(--muted); }
-.card .actions { margin-top: 10px; }
-.card a {
-  display: inline-block; padding: 8px 12px; border-radius: 10px;
-  border: 1px solid var(--line); text-decoration: none; color: var(--text);
+.card:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
 }
-.card a:hover { border-color: var(--accent); }
 
 footer { padding: 12px 16px 24px; border-top: 1px solid var(--line); }
-
-.logo-wrap {
-  display: flex;
-  flex-direction: column;   /* логотип и текст идут друг под другом */
-  align-items: center;      /* центрируем по горизонтали */
-  gap: 8px;                 /* расстояние между логотипом и словом */
-  margin-bottom: 16px;      /* отступ вниз до фильтров */
-}
-
-.logo {
-  height: 60px;  /* подбери нужную высоту */
-  width: auto;
-}
-
-.page-title {
-  color: #ffffff;           /* белый цвет */
-  font-weight: 700;
-  font-size: 22px;          /* можно увеличить или уменьшить */
-  margin: 0;                /* убираем стандартный отступ h1 */
-}
 
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -80,3 +76,4 @@ footer { padding: 12px 16px 24px; border-top: 1px solid var(--line); }
 }
 
 .actions button:hover { border-color: var(--accent); }
+
