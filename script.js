@@ -82,6 +82,42 @@
       return okTrainer && okTag;
     });
   }
+  function isAndroid() {
+  return /Android/i.test(navigator.userAgent);
+}
+function isIOS() {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+/** Собираем intent:// для Android Яндекс.Браузера с fallback на Google Play */
+function buildYandexIntentUrl(originalUrl) {
+  try {
+    const u = new URL(originalUrl);
+    const pathAndQuery = u.pathname + (u.search || '') + (u.hash || '');
+    // scheme ставим https (или http, если у тебя реально http)
+    const scheme = u.protocol.replace(':','') || 'https';
+    const host = u.host;
+    const fallback = 'https://play.google.com/store/apps/details?id=com.yandex.browser';
+    return `intent://${host}${pathAndQuery}#Intent;scheme=${scheme};package=com.yandex.browser;S.browser_fallback_url=${encodeURIComponent(fallback)};end;`;
+  } catch (e) {
+    // На случай кривого URL — просто отдаём исходник
+    return originalUrl;
+  }
+}
+
+/** Открыть «по уму»: Android → intent для Я.Браузера; iOS → копируем + ведём в App Store */
+async function openOnlyInYandex(originalUrl) {
+  if (isAndroid()) {
+    const intentUrl = buildYandexIntentUrl(originalUrl);
+    // В Telegram WebView лучше делать через assignment, а не window.open
+    window.location.href = intentUrl;
+    return;
+  }
+
+  // iOS (и всё остальное, в т.ч. десктопные вебвью Telegram)
+  try {
+    await (navigator.clipboard?.writeText(originalUrl) || Promise.reject());
+    alert('Ссылка скопирована. Откройте её в Яндекс.Браузере после
 
   // ---------- РЕНДЕР ----------
   function render(items) {
