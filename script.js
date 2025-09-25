@@ -1,3 +1,30 @@
+// DOM-ссылки
+const app = document.getElementById('app');
+const refreshBtn   = document.getElementById('refreshBtn');
+const dateAllBtn   = document.getElementById('dateAllBtn');
+const todayBtn     = document.getElementById('todayBtn');
+const tomorrowBtn  = document.getElementById('tomorrowBtn');
+
+// Telegram SDK (не обязательно, но полезно внутри мини-эппа)
+if (window.Telegram?.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}
+
+// Данные в памяти
+let rawItems = [];
+
+// Кнопка "Обновить"
+refreshBtn?.addEventListener('click', () => location.reload());
+
+// Если ниже в коде у тебя есть обработчики today/tomorrow — ок.
+// Если нет, добавь простые (они только переключают фильтр и перерисовывают)
+let currentDateFilter = 'all';
+dateAllBtn?.addEventListener('click', () => { currentDateFilter = 'all'; render(rawItems); });
+todayBtn?.addEventListener('click',   () => { currentDateFilter = 'today'; render(rawItems); });
+tomorrowBtn?.addEventListener('click',()=> { currentDateFilter = 'tomorrow'; render(rawItems); });
+
+
 const API_BASE = 'https://d5d9iu74vcsqbtsmida6.trruwy79.apigw.yandexcloud.net';
 
 async function bootstrap() {
@@ -22,8 +49,13 @@ function load() {
       if (!rawItems.length) { app.textContent = 'Подходящих практикумов не найдено.'; return; }
       render(rawItems);
     })
-    .catch(() => { app.textContent = 'Ошибка загрузки расписания.'; });
+    .catch(err => {
+      console.error(err);
+      app.textContent = 'Ошибка загрузки расписания.';
+    });
 }
+
+load();
 
 load();
   // Модалка
