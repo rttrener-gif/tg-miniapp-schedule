@@ -1,4 +1,6 @@
 (function () {
+  // базовый адрес твоего API Gateway
+  const API_BASE = 'https://d5d9iu74vcsqbtsmida6.trruwy79.apigw.yandexcloud.net';
   const app = document.getElementById('app');
   const refreshBtn = document.getElementById('refreshBtn');
   const dateAllBtn = document.getElementById('dateAllBtn');
@@ -254,11 +256,37 @@ async function bootstrap() {
   return res.json();
 }
 
+async function bootstrap() {
+  const initData = window.Telegram?.WebApp?.initData || '';
+
+  if (initData) {
+    // внутри Telegram — шлём POST с initData
+    const res = await fetch(`${API_BASE}/api/bootstrap`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData })
+    });
+    if (!res.ok) throw new Error('bootstrap_failed');
+    return res.json(); // { user, items }
+  } else {
+    // локальный тест в браузере: добавь ?tgId=6384797183 к URL страницы
+    const res = await fetch(`${API_BASE}/api/bootstrap${location.search || ''}`);
+    if (!res.ok) throw new Error('bootstrap_failed');
+    return res.json();
+  }
+}
+
 function load() {
   app.textContent = 'Загрузка…';
   bootstrap()
-    .then(({ user, items }) => { rawItems = items; render(items); })
-    .catch(() => app.textContent = 'Ошибка загрузки расписания.');
+    .then(({ user, items }) => {
+      rawItems = items;       // твоя глобальная переменная с данными
+      render(items);          // твой рендер списка как раньше
+    })
+    .catch(err => {
+      console.error(err);
+      app.textContent = 'Ошибка загрузки расписания.';
+    });
 }
 
   // ---------- СЛУШАТЕЛИ ---------
