@@ -9,27 +9,20 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <header>
-    <div class="logo-wrap column">
-      <img src="./logo.png" alt="Логотип компании" class="logo" />
-      <h1 class="page-title">Расписание практикумов "Домашний интернет и Wink"</h1>
-    </div>
+<header>
+  <div class="logo-wrap column">
+    <img src="./logo.png" alt="Логотип компании" class="logo" />
+    <h1 class="page-title">Расписание практикумов "Домашний интернет и Wink"</h1>
+  </div>
 
-    <div class="filters">
-      <select id="trainerFilter">
-        <option value="">Все тренеры</option>
-      </select>
-      <select id="tagFilter">
-        <option value="">Все территории</option>
-      </select>
-      <div class="date-filters">
-  <button id="dateAllBtn" class="chip is-active" type="button">Все</button>
-  <button id="todayBtn" class="chip" type="button">Сегодня</button>
-  <button id="tomorrowBtn" class="chip" type="button">Завтра</button>
-</div>
-      <button id="resetBtn" type="button">Сбросить</button>
-    </div>
-  </header>
+  <!-- Только кнопки дат + Сброс -->
+  <div class="date-filters">
+    <button id="dateAllBtn" class="chip is-active" type="button">Все</button>
+    <button id="todayBtn" class="chip" type="button">Сегодня</button>
+    <button id="tomorrowBtn" class="chip" type="button">Завтра</button>
+    <button id="resetBtn" class="chip" type="button">Сбросить</button>
+  </div>
+</header>
 
   <main id="app">Загрузка…</main>
 
