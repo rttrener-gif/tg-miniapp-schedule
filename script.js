@@ -1,6 +1,5 @@
 (function () {
   const app = document.getElementById('app');
-  const resetBtn = document.getElementById('resetBtn');
   const refreshBtn = document.getElementById('refreshBtn');
   const dateAllBtn = document.getElementById('dateAllBtn');
   const todayBtn = document.getElementById('todayBtn');
@@ -266,8 +265,7 @@
       });
   }
 
-  // ---------- СЛУШАТЕЛИ ----------
-  resetBtn.addEventListener('click', () => setDateFilter('all'));
+  // ---------- СЛУШАТЕЛИ ---------
   refreshBtn.addEventListener('click', () => location.reload());
 
   dateAllBtn.addEventListener('click', () => setDateFilter('all'));
