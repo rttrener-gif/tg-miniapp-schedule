@@ -4,7 +4,12 @@
   const tagFilter = document.getElementById('tagFilter');
   const resetBtn = document.getElementById('resetBtn');
   const refreshBtn = document.getElementById('refreshBtn');
+  const dateAllBtn = document.getElementById('dateAllBtn');
+  const todayBtn = document.getElementById('todayBtn');
+  const tomorrowBtn = document.getElementById('tomorrowBtn');
 
+let dateFilter = 'all'; // 'all' | 'today' | 'tomorrow'
+  
   // Модалка
   const modal = document.getElementById('modal');
   const modalTitle = document.getElementById('modalTitle');
@@ -87,7 +92,41 @@
   function makeId(it) {
     return `${(it.date||'').trim()}_${(it.time||'').trim()}_${(it.title||'').trim()}`.toLowerCase();
   }
+function pad2(n) { return String(n).padStart(2, '0'); }
 
+function getTodayISO() {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+}
+function getTomorrowISO() {
+  const now = new Date();
+  const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}`;
+}
+function nowHM() {
+  const now = new Date();
+  return `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+}
+
+/** true, если событие уже в прошлом (дата раньше сегодня, или сегодня но время прошло) */
+function isPast(item) {
+  const d = (item.date || '').trim();     // 'YYYY-MM-DD'
+  const t = (item.time || '').trim();     // 'HH:MM' или ''
+  const today = getTodayISO();
+  if (!d) return false; // нет даты — не фильтруем
+  if (d < today) return true;
+  if (d === today && t && t < nowHM()) return true;
+  return false;
+}
+
+/** true, если событие проходит под выбранный фильтр даты */
+function matchDateFilter(item) {
+  if (dateFilter === 'all') return true;
+  const d = (item.date || '').trim();
+  if (dateFilter === 'today') return d === getTodayISO();
+  if (dateFilter === 'tomorrow') return d === getTomorrowISO();
+  return true;
+}
   // ---------- "МОЙ КАЛЕНДАРЬ" (пока локально, без бэка) ----------
   const LS_KEY = 'myCalendarIds';
   const MY = new Set(JSON.parse(localStorage.getItem(LS_KEY) || '[]'));
@@ -237,12 +276,28 @@
   trainerFilter.addEventListener('change', () => render(rawItems));
   tagFilter.addEventListener('change', () => render(rawItems));
   resetBtn.addEventListener('click', () => {
-    trainerFilter.value = '';
-    tagFilter.value = '';
-    render(rawItems);
-  });
+  trainerFilter.value = '';
+  tagFilter.value = '';
+  setDateFilter('all');      // ← вернём «Все»
+});
   refreshBtn.addEventListener('click', () => location.reload());
 
+  function setDateFilter(val) {
+  dateFilter = val; // 'all' | 'today' | 'tomorrow'
+  // подсветка активной кнопки
+  [dateAllBtn, todayBtn, tomorrowBtn].forEach(btn =>
+    btn.classList.toggle('is-active', 
+      (btn === dateAllBtn && val === 'all') ||
+      (btn === todayBtn && val === 'today') ||
+      (btn === tomorrowBtn && val === 'tomorrow')
+    )
+  );
+  render(rawItems);
+}
+
+dateAllBtn.addEventListener('click', () => setDateFilter('all'));
+todayBtn.addEventListener('click', () => setDateFilter('today'));
+tomorrowBtn.addEventListener('click', () => setDateFilter('tomorrow'));
   // Клик по карточке — открыть модалку
   app.addEventListener('click', (e) => {
     const card = e.target.closest('.card');
