@@ -240,30 +240,34 @@
     currentCard = null;
   }
 
-  // ---------- ЗАГРУЗКА ----------
-  function load() {
-    app.textContent = 'Загрузка…';
-    fetch(window.CSV_URL, { cache: 'no-store' })
-      .then(r => r.text())
-      .then(text => {
-        const rows = parseCSV(text);
-        const raw = toObjects(rows).map(normalizeKeys);
-        const items = raw.map(o => ({
-          date: o.date || '',
-          time: o.time || '',
-          title: o.title || '',
-          trainer: o.trainer || '',
-          tag: o.tag || '',
-          link: o.link || ''
-        }));
-        rawItems = items;
-        render(items);
-      })
-      .catch(err => {
-        console.error(err);
-        app.textContent = 'Ошибка загрузки расписания.';
-      });
-  }
+// ---------- ЗАГРУЗКА из бэка ----------
+async function bootstrap() {
+  const initData = window.Telegram?.WebApp?.initData || '';
+  // Если запускаешь в браузере без Telegram — можно добавить ?tgId=6384797183 к URL страницы
+  const url = '/api/bootstrap' + (initData ? '' : (location.search || ''));
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ initData })
+  });
+  if (!res.ok) throw new Error('bootstrap_failed');
+  return res.json(); // { user: { tgId, role }, items: [...] }
+}
+
+function load() {
+  app.textContent = 'Загрузка…';
+  bootstrap()
+    .then(({ user, items }) => {
+      // можешь где-то отобразить роль/имя, если нужно
+      // console.log('profile', user);
+      rawItems = items;
+      render(items);
+    })
+    .catch(err => {
+      console.error(err);
+      app.textContent = 'Ошибка загрузки расписания.';
+    });
+}
 
   // ---------- СЛУШАТЕЛИ ---------
   refreshBtn.addEventListener('click', () => location.reload());
