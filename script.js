@@ -1,15 +1,11 @@
 (function () {
   const app = document.getElementById('app');
-  const trainerFilter = document.getElementById('trainerFilter');
-  const tagFilter = document.getElementById('tagFilter');
   const resetBtn = document.getElementById('resetBtn');
   const refreshBtn = document.getElementById('refreshBtn');
   const dateAllBtn = document.getElementById('dateAllBtn');
   const todayBtn = document.getElementById('todayBtn');
   const tomorrowBtn = document.getElementById('tomorrowBtn');
 
-let dateFilter = 'all'; // 'all' | 'today' | 'tomorrow'
-  
   // Модалка
   const modal = document.getElementById('modal');
   const modalTitle = document.getElementById('modalTitle');
@@ -63,7 +59,7 @@ let dateFilter = 'all'; // 'all' | 'today' | 'tomorrow'
       'время': 'time',
       'название': 'title', 'тема': 'title',
       'тренер': 'trainer',
-      'территория': 'tag', 'территория': 'tag',
+      'территория': 'tag',
       'ссылка': 'link', 'link': 'link'
     };
     const out = {};
@@ -84,82 +80,73 @@ let dateFilter = 'all'; // 'all' | 'today' | 'tomorrow'
     }, {});
   }
 
-  function unique(list) {
-    return [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
-  }
-
-  // Дет-ид события (стабильный)
+  // стабильный id карточки
   function makeId(it) {
     return `${(it.date||'').trim()}_${(it.time||'').trim()}_${(it.title||'').trim()}`.toLowerCase();
   }
-function pad2(n) { return String(n).padStart(2, '0'); }
 
-function getTodayISO() {
-  const now = new Date();
-  return `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
-}
-function getTomorrowISO() {
-  const now = new Date();
-  const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}`;
-}
-function nowHM() {
-  const now = new Date();
-  return `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-}
+  // ---------- ДАТЫ/ВРЕМЯ ----------
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function getTodayISO() {
+    const now = new Date();
+    return `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+  }
+  function getTomorrowISO() {
+    const now = new Date();
+    const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}`;
+  }
+  function nowHM() {
+    const now = new Date();
+    return `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+  }
+  /** прошлое? (дата < сегодня, либо сегодня и время уже прошло) */
+  function isPast(item) {
+    const d = (item.date || '').trim();     // 'YYYY-MM-DD'
+    const t = (item.time || '').trim();     // 'HH:MM' или ''
+    const today = getTodayISO();
+    if (!d) return false;
+    if (d < today) return true;
+    if (d === today && t && t < nowHM()) return true;
+    return false;
+  }
 
-/** true, если событие уже в прошлом (дата раньше сегодня, или сегодня но время прошло) */
-function isPast(item) {
-  const d = (item.date || '').trim();     // 'YYYY-MM-DD'
-  const t = (item.time || '').trim();     // 'HH:MM' или ''
-  const today = getTodayISO();
-  if (!d) return false; // нет даты — не фильтруем
-  if (d < today) return true;
-  if (d === today && t && t < nowHM()) return true;
-  return false;
-}
-
-/** true, если событие проходит под выбранный фильтр даты */
-function matchDateFilter(item) {
-  if (dateFilter === 'all') return true;
-  const d = (item.date || '').trim();
-  if (dateFilter === 'today') return d === getTodayISO();
-  if (dateFilter === 'tomorrow') return d === getTomorrowISO();
-  return true;
-}
-  // ---------- "МОЙ КАЛЕНДАРЬ" (пока локально, без бэка) ----------
+  // ---------- "МОЙ КАЛЕНДАРЬ" (локально) ----------
   const LS_KEY = 'myCalendarIds';
   const MY = new Set(JSON.parse(localStorage.getItem(LS_KEY) || '[]'));
+  function saveMy() { localStorage.setItem(LS_KEY, JSON.stringify([...MY])); }
+  function ensureEnrolled(id) { MY.add(id); saveMy(); }
+  function removeEnrolled(id) { MY.delete(id); saveMy(); }
 
-  function saveMy() {
-    localStorage.setItem(LS_KEY, JSON.stringify([...MY]));
+  // ---------- ФИЛЬТР ДАТЫ ----------
+  let dateFilter = 'all'; // 'all' | 'today' | 'tomorrow'
+  function matchDateFilter(item) {
+    if (dateFilter === 'all') return true;
+    const d = (item.date || '').trim();
+    if (dateFilter === 'today') return d === getTodayISO();
+    if (dateFilter === 'tomorrow') return d === getTomorrowISO();
+    return true;
   }
-  function ensureEnrolled(id) {
-    MY.add(id); saveMy();
-  }
-  function removeEnrolled(id) {
-    MY.delete(id); saveMy();
+  function setDateFilter(val) {
+    dateFilter = val;
+    [dateAllBtn, todayBtn, tomorrowBtn].forEach(btn =>
+      btn.classList.toggle('is-active',
+        (btn === dateAllBtn && val === 'all') ||
+        (btn === todayBtn && val === 'today') ||
+        (btn === tomorrowBtn && val === 'tomorrow')
+      )
+    );
+    render(rawItems);
   }
 
-  // ---------- ФИЛЬТРЫ ----------
+  // ---------- ПРИМЕНЕНИЕ ФИЛЬТРОВ ----------
   function applyFilters(items) {
-    const t = (trainerFilter.value || '').toLowerCase();
-    const g = (tagFilter.value || '').toLowerCase();
-    return items.filter(it => {
-      const okTrainer = !t || (it.trainer || '').toLowerCase() === t;
-      const okTag     = !g || (it.tag || '').toLowerCase() === g;
-      return okTrainer && okTag;
-    });
+    return items
+      .filter(it => !isPast(it))     // скрыть прошедшие
+      .filter(matchDateFilter);      // all / today / tomorrow
   }
 
-  function populateFilters(items) {
-    const trainers = unique(items.map(i => i.trainer));
-    const tags = unique(items.map(i => i.tag));
-    trainerFilter.innerHTML = '<option value="">Все тренеры</option>' + trainers.map(v => `<option>${v}</option>`).join('');
-    tagFilter.innerHTML = '<option value="">Все территории</option>' + tags.map(v => `<option>${v}</option>`).join('');
-  }
-
-  // ---------- РЕНДЕР СПИСКА ----------
+  // ---------- РЕНДЕР ----------
   let rawItems = [];
 
   function render(items) {
@@ -168,8 +155,16 @@ function matchDateFilter(item) {
     const dates = Object.keys(grouped).sort();
 
     app.innerHTML = '';
+
     if (!dates.length) {
-      app.textContent = 'Нет подходящих занятий.';
+      // пустое состояние — разные сообщения под фильтр
+      if (dateFilter === 'today') {
+        app.textContent = 'Увы, на сегодня практикумов уже нет 😢';
+      } else if (dateFilter === 'tomorrow') {
+        app.textContent = 'На завтра пока ничего нет. Загляните позже 🙂';
+      } else {
+        app.textContent = 'Подходящих занятий не найдено.';
+      }
       return;
     }
 
@@ -185,7 +180,7 @@ function matchDateFilter(item) {
       events.forEach(it => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.dataset.id = makeId(it); // пригодится в модалке
+        card.dataset.id = makeId(it);
         card.dataset.link = it.link || '#';
         card.dataset.title = it.title || '';
         card.dataset.time = it.time || '';
@@ -232,15 +227,15 @@ function matchDateFilter(item) {
       MY.has(id) ? 'В моём календаре' : ''
     ].filter(Boolean).join(' · ');
 
-    // показываем/прячем кнопки по состоянию
-    modalBtnEnroll.style.display = MY.has(id) ? 'none' : '';
-    modalBtnUnenroll.style.display = MY.has(id) ? '' : 'none';
-
     modal.classList.remove('hidden');
-    modal.setAttribute('aria-hidden', 'false');
+    modal.removeAttribute('aria-hidden'); // не скрываем для AT
   }
 
   function closeModal() {
+    // доступность: убрать фокус внутри перед скрытием
+    if (document.activeElement && modal.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
     modal.classList.add('hidden');
     modal.setAttribute('aria-hidden', 'true');
     currentCard = null;
@@ -263,7 +258,6 @@ function matchDateFilter(item) {
           link: o.link || ''
         }));
         rawItems = items;
-        populateFilters(items);
         render(items);
       })
       .catch(err => {
@@ -273,31 +267,13 @@ function matchDateFilter(item) {
   }
 
   // ---------- СЛУШАТЕЛИ ----------
-  trainerFilter.addEventListener('change', () => render(rawItems));
-  tagFilter.addEventListener('change', () => render(rawItems));
-  resetBtn.addEventListener('click', () => {
-  trainerFilter.value = '';
-  tagFilter.value = '';
-  setDateFilter('all');      // ← вернём «Все»
-});
+  resetBtn.addEventListener('click', () => setDateFilter('all'));
   refreshBtn.addEventListener('click', () => location.reload());
 
-  function setDateFilter(val) {
-  dateFilter = val; // 'all' | 'today' | 'tomorrow'
-  // подсветка активной кнопки
-  [dateAllBtn, todayBtn, tomorrowBtn].forEach(btn =>
-    btn.classList.toggle('is-active', 
-      (btn === dateAllBtn && val === 'all') ||
-      (btn === todayBtn && val === 'today') ||
-      (btn === tomorrowBtn && val === 'tomorrow')
-    )
-  );
-  render(rawItems);
-}
+  dateAllBtn.addEventListener('click', () => setDateFilter('all'));
+  todayBtn.addEventListener('click', () => setDateFilter('today'));
+  tomorrowBtn.addEventListener('click', () => setDateFilter('tomorrow'));
 
-dateAllBtn.addEventListener('click', () => setDateFilter('all'));
-todayBtn.addEventListener('click', () => setDateFilter('today'));
-tomorrowBtn.addEventListener('click', () => setDateFilter('tomorrow'));
   // Клик по карточке — открыть модалку
   app.addEventListener('click', (e) => {
     const card = e.target.closest('.card');
@@ -314,10 +290,8 @@ tomorrowBtn.addEventListener('click', () => setDateFilter('tomorrow'));
     if (!currentCard) return;
     const url = currentCard.dataset.link;
     const id = currentCard.dataset.id;
-    // авто-зачёт в "мой календарь"
-    ensureEnrolled(id);
+    ensureEnrolled(id);        // авто-зачёт
     render(rawItems);
-    // предупреждение про браузер
     const note = '⚠️ Сайт может открываться только в Яндекс.Браузере или при установленном сертификате Минцифры. Открыть сейчас?';
     if (confirm(note)) window.open(url, '_blank', 'noopener,noreferrer');
   });
@@ -326,8 +300,7 @@ tomorrowBtn.addEventListener('click', () => setDateFilter('tomorrow'));
     if (!currentCard) return;
     const url = currentCard.dataset.link;
     const id = currentCard.dataset.id;
-    // авто-зачёт в "мой календарь"
-    ensureEnrolled(id);
+    ensureEnrolled(id);        // авто-зачёт
     render(rawItems);
     try {
       await (navigator.clipboard?.writeText(url) || Promise.reject());
@@ -346,14 +319,14 @@ tomorrowBtn.addEventListener('click', () => setDateFilter('tomorrow'));
     if (!currentCard) return;
     ensureEnrolled(currentCard.dataset.id);
     render(rawItems);
-    openModal(currentCard); // обновить состояние кнопок
+    openModal(currentCard); // обновить кнопки
   });
 
   modalBtnUnenroll.addEventListener('click', () => {
     if (!currentCard) return;
     removeEnrolled(currentCard.dataset.id);
     render(rawItems);
-    openModal(currentCard); // обновить состояние кнопок
+    openModal(currentCard); // обновить кнопки
   });
 
   load();
