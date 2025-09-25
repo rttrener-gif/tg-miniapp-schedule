@@ -110,3 +110,23 @@ footer { padding: 12px 16px 24px; border-top: 1px solid var(--line); }
 @media (max-width: 420px) {
   .modal .modal-actions { grid-template-columns: 1fr; }
 }
+.date-filters {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;              /* небольшой отступ от селектов */
+  flex-wrap: wrap;               /* можно убрать, если не нужно переносить */
+}
+
+.chip {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--accent); }
+.chip.is-active {
+  border-color: var(--accent);
+}
