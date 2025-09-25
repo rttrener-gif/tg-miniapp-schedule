@@ -1,12 +1,31 @@
-(function () {
-  // базовый адрес твоего API Gateway
-  const API_BASE = 'https://d5d9iu74vcsqbtsmida6.trruwy79.apigw.yandexcloud.net';
-  const app = document.getElementById('app');
-  const refreshBtn = document.getElementById('refreshBtn');
-  const dateAllBtn = document.getElementById('dateAllBtn');
-  const todayBtn = document.getElementById('todayBtn');
-  const tomorrowBtn = document.getElementById('tomorrowBtn');
+const API_BASE = 'https://d5d9iu74vcsqbtsmida6.trruwy79.apigw.yandexcloud.net';
 
+async function bootstrap() {
+  const initData = window.Telegram?.WebApp?.initData || '';
+  const url = initData
+    ? `${API_BASE}/api/bootstrap`
+    : `${API_BASE}/api/bootstrap${location.search || ''}`;
+  const res = await fetch(url, {
+    method: initData ? 'POST' : 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    body: initData ? JSON.stringify({ initData }) : undefined
+  });
+  if (!res.ok) throw new Error('bootstrap_failed');
+  return res.json();
+}
+
+function load() {
+  app.textContent = 'Загрузка…';
+  bootstrap()
+    .then(({ user, items }) => {
+      rawItems = Array.isArray(items) ? items : [];
+      if (!rawItems.length) { app.textContent = 'Подходящих практикумов не найдено.'; return; }
+      render(rawItems);
+    })
+    .catch(() => { app.textContent = 'Ошибка загрузки расписания.'; });
+}
+
+load();
   // Модалка
   const modal = document.getElementById('modal');
   const modalTitle = document.getElementById('modalTitle');
