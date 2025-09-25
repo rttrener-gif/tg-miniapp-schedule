@@ -18,7 +18,7 @@ header{
 
 /* Логотип прибиваем к левому верхнему углу шапки */
 .logo {
-  height: 11px;    /* ≈0.3 см на экране */
+  height: 25px;    /* уменьшили */
   width: auto;     /* пропорции сохраняем */
 }
 
@@ -127,5 +127,6 @@ footer { padding: 12px 16px 24px; border-top: 1px solid var(--line); }
 .chip.is-active {
   border-color: var(--accent);
 }
+
 
 
