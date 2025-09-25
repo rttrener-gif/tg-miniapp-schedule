@@ -10,9 +10,9 @@ app.use(cors({ origin: true }));
 app.use(express.json({ limit: '1mb' }));
 
 // ==== КОНФИГ ====
-const MONGO_URI = process.env.MONGO_URI;                 // mongodb://iren:***@176.113.82.239:27017/irenTestBotDb?authSource=admin
+const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME   = process.env.DB_NAME || 'irenTestBotDb';
-const BOT_TOKEN = process.env.BOT_TOKEN;                 // токен твоего TG-бота
+const BOT_TOKEN = process.env.BOT_TOKEN;
 let client, db;
 
 // Подключение к БД (лениво)
