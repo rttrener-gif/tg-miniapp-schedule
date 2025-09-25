@@ -19,9 +19,9 @@ header{
 /* Логотип прибиваем к левому верхнему углу шапки */
 .logo.absolute-left{
   position:absolute;
-  left:16px;
-  top:16px;                    /* если хочешь строго по вертикальному центру шапки — см. ниже */
-  height:60px;
+  left:8px;
+  top:8px;                    /* если хочешь строго по вертикальному центру шапки — см. ниже */
+  height:30px;
   width:auto;
 }
 
@@ -130,3 +130,4 @@ footer { padding: 12px 16px 24px; border-top: 1px solid var(--line); }
 .chip.is-active {
   border-color: var(--accent);
 }
+
