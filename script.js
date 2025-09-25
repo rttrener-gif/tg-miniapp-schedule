@@ -240,33 +240,25 @@
     currentCard = null;
   }
 
-// ---------- ЗАГРУЗКА из бэка ----------
+const API_BASE = 'https://<gw-id>.apigw.yandexcloud.net';
+
 async function bootstrap() {
   const initData = window.Telegram?.WebApp?.initData || '';
-  // Если запускаешь в браузере без Telegram — можно добавить ?tgId=6384797183 к URL страницы
-  const url = '/api/bootstrap' + (initData ? '' : (location.search || ''));
+  const url = API_BASE + '/api/bootstrap' + (initData ? '' : (location.search || ''));
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type':'application/json'},
     body: JSON.stringify({ initData })
   });
   if (!res.ok) throw new Error('bootstrap_failed');
-  return res.json(); // { user: { tgId, role }, items: [...] }
+  return res.json();
 }
 
 function load() {
   app.textContent = 'Загрузка…';
   bootstrap()
-    .then(({ user, items }) => {
-      // можешь где-то отобразить роль/имя, если нужно
-      // console.log('profile', user);
-      rawItems = items;
-      render(items);
-    })
-    .catch(err => {
-      console.error(err);
-      app.textContent = 'Ошибка загрузки расписания.';
-    });
+    .then(({ user, items }) => { rawItems = items; render(items); })
+    .catch(() => app.textContent = 'Ошибка загрузки расписания.');
 }
 
   // ---------- СЛУШАТЕЛИ ---------
