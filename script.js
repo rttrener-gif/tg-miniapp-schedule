@@ -70,16 +70,25 @@ function setDateFilter(val) {
 // --- Получение данных с сервера ---
 async function bootstrap() {
   const initData = window.Telegram?.WebApp?.initData || '';
-  const url = initData
-    ? `${API_BASE}/api/bootstrap`
-    : `${API_BASE}/api/bootstrap${location.search || ''}`;
-  const res = await fetch(url, {
-    method: initData ? 'POST' : 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    body: initData ? JSON.stringify({ initData }) : undefined
-  });
-  if (!res.ok) throw new Error('bootstrap_failed');
-  return res.json();
+
+  if (initData) {
+    // Внутри Telegram — POST с initData и заголовком
+    const res = await fetch(`${API_BASE}/api/bootstrap`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData })
+    });
+    if (!res.ok) throw new Error('bootstrap_failed');
+    return res.json();
+  } else {
+    // Тест в браузере — чистый GET без заголовков (чтобы не было preflight)
+    const res = await fetch(`${API_BASE}/api/bootstrap${location.search || ''}`, {
+      method: 'GET'
+      // без headers!
+    });
+    if (!res.ok) throw new Error('bootstrap_failed');
+    return res.json();
+  }
 }
 
 // --- Рендер ---
