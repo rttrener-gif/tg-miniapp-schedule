@@ -1,0 +1,150 @@
+
+:root{
+  --bg:#E8E8EE;           /* фон серый */
+  --card:#FFFFFF;         /* плашки белые */
+  --text:#000000;         /* шрифт везде чёрный */
+  --muted:#000000;        /* даже muted чёрный */
+  --line:#2a2c31;
+  --accent:#7aa2ff;
+  --title-color:#000000;  /* заголовки чёрные */
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+header{
+  position:relative;
+  text-align:center;        /* центрирует заголовок */
+  padding:16px;
+  border-bottom:1px solid var(--line);
+}
+
+/* Лого фиксируем в левом верхнем углу */
+.logo{
+  position:absolute;        /* <-- это ключ */
+  left:16px;
+  top:16px;
+  height:25px;              /* твой размер */
+  width:auto;
+}
+
+/* Заголовок */
+.page-title{
+  margin:40px 0 0 0;        /* верхний отступ ~40 px */
+  font-size:20px;
+  font-weight:700;
+  color:var(--title-color);
+  text-shadow:none;         /* убрана тень */
+}
+
+.filters{
+  display:flex;
+  gap:8px;
+  justify-content:center;   /* центрируем */
+  flex-wrap:wrap;           /* перенос на новую строку */
+  margin-top:12px;          /* отступ от заголовка */
+}
+
+button{
+  cursor:pointer;
+  color:var(--text);
+  background:var(--card);
+  border:none;              /* убрана обводка */
+  border-radius:5px;        /* скругление 5px */
+  box-shadow:0 2px 4px rgba(0,0,0,.15);  /* аккуратная тень */
+  padding:8px 12px;
+}
+button:hover{ background:#f5f5f5; }
+
+#app{ padding:16px; }
+
+section.day{ margin-bottom:20px; }
+.day h3{ margin:0 0 8px 0; font-size:16px; color:var(--muted); font-weight:500; }
+
+.card{
+  background:var(--card);
+  border:none;               /* убрана обводка */
+  border-radius:5px;         /* скругление 5px */
+  padding:12px;
+  margin:10px 0;
+  cursor:pointer;            /* курсор-указатель */
+  transition:transform .08s ease, box-shadow .15s; /* лёгкий «подскок» */
+  color:var(--text);
+  box-shadow:0 2px 4px rgba(0,0,0,.10);          /* аккуратная тень */
+}
+.card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 4px 8px rgba(0,0,0,.15);
+}
+
+footer{ padding:12px 16px 24px; border-top:1px solid var(--line); }
+
+.actions{ display:flex; gap:8px; flex-wrap:wrap; }
+
+.actions button{
+  background:var(--card);
+  color:var(--text);
+  border:none;               /* убрана обводка */
+  border-radius:5px;         /* скругление 5px */
+  padding:8px 12px;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);  /* аккуратная тень */
+}
+
+/* Модалка */
+.modal.hidden{ display:none; }
+.modal .overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.5); backdrop-filter:blur(2px);
+}
+.modal .sheet{
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(560px,92vw);
+  background:var(--card); color:var(--text);
+  border:none;               /* убрана обводка */
+  border-radius:5px;         /* скругление 5px */
+  padding:16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+.modal .close{
+  position:absolute; top:8px; right:10px;
+  background:transparent; border:0; color:var(--text); font-size:22px; cursor:pointer;
+}
+.modal h2{ margin:0 0 8px 0; font-size:18px; color:var(--text); }
+.modal .modal-meta{ margin:0 0 12px 0; color:var(--muted); font-size:14px; }
+.modal .modal-actions{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.modal .modal-actions button{
+  background:var(--card); color:var(--text);
+  border:none;               /* убрана обводка */
+  border-radius:5px;         /* скругление 5px */
+  padding:10px 12px; font-size:14px;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);  /* аккуратная тень */
+}
+
+/* Для маленьких экранов — кнопки в столбик */
+@media (max-width:420px){
+  .modal .modal-actions{ grid-template-columns:1fr; }
+}
+
+.date-filters{
+  display:flex;
+  gap:8px;
+  margin-top:10px;              /* небольшой отступ от селектов */
+  flex-wrap:wrap;               /* можно убрать, если не нужно переносить */
+}
+
+.chip{
+  background:var(--card);
+  color:var(--text);
+  border:none;                 /* убрана обводка */
+  border-radius:5px;           /* было 999px — теперь 5px по ТЗ */
+  padding:8px 12px;
+  font-size:14px;
+  cursor:pointer;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);  /* аккуратная тень */
+}
+.chip:hover{ background:#f5f5f5; }
+/* Активное состояние без обводки — мягкий фон */
+.chip.is-active{ background:#eef3ff; }
