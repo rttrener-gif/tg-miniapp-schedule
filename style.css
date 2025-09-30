@@ -28,7 +28,7 @@ header{
   position:absolute;        /* <-- это ключ */
   left:16px;
   top:16px;
-  height:25px;              /* твой размер */
+  height:35px;              /* твой размер */
   width:auto;
 }
 
